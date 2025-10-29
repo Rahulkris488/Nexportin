@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supply Chain Simulator</title>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css' rel='stylesheet' />
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Dynamic Recovery Supply Chain Simulator</h1>
+            <nav>
+                <a href="/" class="active">Dashboard</a>
+                <a href="/map">Map View</a>
+                <a href="/analytics">Analytics</a>
+            </nav>
+        </header>
+
+        <main>
+            <div class="dashboard">
+                <section class="controls">
+                    <h2>Simulation Controls</h2>
+                    <button id="startSimulation">Start Simulation</button>
+                    <button id="pauseSimulation">Pause</button>
+                    <button id="resetSimulation">Reset</button>
+                    <div class="simulation-speed">
+                        <label for="speedControl">Simulation Speed:</label>
+                        <input type="range" id="speedControl" min="1" max="10" value="5">
+                    </div>
+                </section>
+
+                <section class="metrics">
+                    <h2>Current Metrics</h2>
+                    <div class="metric-grid">
+                        <div class="metric-card">
+                            <h3>Active Shipments</h3>
+                            <p id="activeShipments">0</p>
+                        </div>
+                        <div class="metric-card">
+                            <h3>Total Delay</h3>
+                            <p id="totalDelay">0h</p>
+                        </div>
+                        <div class="metric-card">
+                            <h3>Total Cost</h3>
+                            <p id="totalCost">$0</p>
+                        </div>
+                        <div class="metric-card">
+                            <h3>Network Health</h3>
+                            <p id="networkHealth">100%</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="actions">
+                    <h2>Actions</h2>
+                    <div class="action-buttons">
+                        <button id="injectDisruption">Inject Disruption</button>
+                        <button id="applyRecovery">Apply Recovery Strategy</button>
+                    </div>
+                </section>
+
+                <section class="events">
+                    <h2>Event Log</h2>
+                    <div id="eventLog" class="event-log"></div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for Disruption Injection -->
+    <div id="disruptionModal" class="modal">
+        <div class="modal-content">
+            <h2>Inject Disruption</h2>
+            <form id="disruptionForm">
+                <div class="form-group">
+                    <label for="disruptionType">Type:</label>
+                    <select id="disruptionType" required>
+                        <option value="node">Node (Facility)</option>
+                        <option value="edge">Edge (Route)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="targetId">Target:</label>
+                    <select id="targetId" required>
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="duration">Duration (hours):</label>
+                    <input type="number" id="duration" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="severity">Severity (1-10):</label>
+                    <input type="range" id="severity" min="1" max="10" value="5">
+                </div>
+                <div class="form-actions">
+                    <button type="submit">Inject</button>
+                    <button type="button" class="cancel">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for Recovery Strategy -->
+    <div id="recoveryModal" class="modal">
+        <div class="modal-content">
+            <h2>Apply Recovery Strategy</h2>
+            <form id="recoveryForm">
+                <div class="form-group">
+                    <label for="strategyType">Strategy:</label>
+                    <select id="strategyType" required>
+                        <option value="reroute">Reroute Shipment</option>
+                        <option value="alternate_supplier">Use Alternate Supplier</option>
+                    </select>
+                </div>
+                <div id="reroute-options">
+                    <div class="form-group">
+                        <label for="origin">Origin:</label>
+                        <select id="origin" required>
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="destination">Destination:</label>
+                        <select id="destination" required>
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+                <div id="supplier-options" style="display: none;">
+                    <div class="form-group">
+                        <label for="originalSupplier">Original Supplier:</label>
+                        <select id="originalSupplier" required>
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="alternateSupplier">Alternate Supplier:</label>
+                        <select id="alternateSupplier" required>
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit">Apply</button>
+                    <button type="button" class="cancel">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js'></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <!-- Load simulation first to initialize the global simulation object -->
+    <script src="/static/js/simulation.js"></script>
+    <!-- Load UI after simulation is initialized -->
+    <script src="/static/js/ui.js" defer></script>
+</body>
+</html>

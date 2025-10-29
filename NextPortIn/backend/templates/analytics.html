@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supply Chain Analytics</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container analytics-view">
+        <header>
+            <h1>Supply Chain Analytics</h1>
+            <nav>
+                <a href="/">Dashboard</a>
+                <a href="/map">Map View</a>
+                <a href="/analytics" class="active">Analytics</a>
+            </nav>
+        </header>
+
+        <main>
+            <div class="analytics-grid">
+                <section class="chart-container">
+                    <h2>Delivery Time Distribution</h2>
+                    <div id="timeDistributionChart"></div>
+                </section>
+
+                <section class="chart-container">
+                    <h2>Cost Impact Analysis</h2>
+                    <div id="costImpactChart"></div>
+                </section>
+
+                <section class="chart-container">
+                    <h2>Network Performance</h2>
+                    <div id="performanceChart"></div>
+                </section>
+
+                <section class="chart-container">
+                    <h2>Recovery Strategy Effectiveness</h2>
+                    <div id="recoveryChart"></div>
+                </section>
+            </div>
+
+            <div class="analytics-controls">
+                <div class="time-range">
+                    <h3>Time Range</h3>
+                    <select id="timeRange">
+                        <option value="1d">Last 24 Hours</option>
+                        <option value="7d">Last 7 Days</option>
+                        <option value="30d">Last 30 Days</option>
+                        <option value="custom">Custom Range</option>
+                    </select>
+                </div>
+
+                <div class="metrics-selector">
+                    <h3>Metrics</h3>
+                    <label>
+                        <input type="checkbox" id="showDeliveryTimes" checked>
+                        Delivery Times
+                    </label>
+                    <label>
+                        <input type="checkbox" id="showCosts" checked>
+                        Costs
+                    </label>
+                    <label>
+                        <input type="checkbox" id="showDisruptions" checked>
+                        Disruptions
+                    </label>
+                    <label>
+                        <input type="checkbox" id="showRecovery" checked>
+                        Recovery Impact
+                    </label>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="/static/js/analytics.js"></script>
+</body>
+</html>
