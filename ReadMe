@@ -1,0 +1,12 @@
+Dynamic Recovery Supply Chain Simulator 
+ * Challenge: Supply chain managers lack practical tools to "practice" responding to disruptions like port strikes or vehicle breakdowns.
+ * Solution Concept: A "flight simulator for supply chains"—an interactive dashboard that visualizes a company's supply chain and allows users to inject disruptions and test various recovery strategies.
+ * Key Features:
+   * Visual Supply Chain Map: A dashboard showing factories, warehouses, and moving trucks/ships on a map.
+   * Disruption Injector: A menu that lets a user create a problem, like "Close a major highway for 12 hours" or "Supplier A has a 50% reduction in output."
+   * Real-time Impact Analysis: The dashboard immediately visualizes the cascading effects—shipment ETAs are delayed, factory production is halted due to missing parts, etc.
+   * What-If Recovery Explorer: The system suggests recovery options (e.g., "Reroute trucks for an extra $5,000 cost" or "Air-freight parts for a $20,000 premium"). Users can select an option and see the simulated outcome on cost and delivery times.
+ * Suggested Tech Stack:
+   * Frontend: React or Vue.js.
+   * Visualization: A mapping library like Mapbox and a data visualization library like D3.js.
+   * Backend: Python or Node.js to run the discrete-event simulation logic that models the supply chain.
