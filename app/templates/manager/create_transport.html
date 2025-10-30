@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Create New Transport</h2>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('manager.create_transport') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="source" class="form-label">Source Location</label>
+                                <input type="text" class="form-control" id="source" name="source" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="destination" class="form-label">Destination</label>
+                                <input type="text" class="form-control" id="destination" name="destination" required>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="vehicle_id" class="form-label">Vehicle</label>
+                                <select class="form-select" id="vehicle_id" name="vehicle_id" required>
+                                    <option value="">Select Vehicle</option>
+                                    {% for vehicle in vehicles %}
+                                    <option value="{{ vehicle.id }}">
+                                        {{ vehicle.vehicle_number }} - {{ vehicle.vehicle_type }} 
+                                        (Capacity: {{ vehicle.capacity }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="worker_id" class="form-label">Assign Worker</label>
+                                <select class="form-select" id="worker_id" name="worker_id" required>
+                                    <option value="">Select Worker</option>
+                                    {% for worker in workers %}
+                                    <option value="{{ worker.id }}">{{ worker.username }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="items_container">
+                            <h5 class="mb-3">Transport Items</h5>
+                            <div class="transport-item mb-3">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Item</label>
+                                        <select class="form-select" name="items[0][stock_id]" required>
+                                            <option value="">Select Item</option>
+                                            {% for stock in stocks %}
+                                            <option value="{{ stock.id }}" 
+                                                    data-available="{{ stock.quantity }}"
+                                                    data-unit="{{ stock.unit }}">
+                                                {{ stock.item_name }} (Available: {{ stock.quantity }} {{ stock.unit }})
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Quantity</label>
+                                        <input type="number" class="form-control" 
+                                               name="items[0][quantity]" min="1" required>
+                                    </div>
+                                    <div class="col-md-2 d-flex align-items-end">
+                                        <button type="button" class="btn btn-danger remove-item" style="display: none;">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <button type="button" id="add_item" class="btn btn-secondary">
+                                <i class="fas fa-plus"></i> Add Another Item
+                            </button>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary">Create Transport</button>
+                            <a href="{{ url_for('manager.transports') }}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Transport Guidelines</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-info-circle text-info"></i>
+                            Select available vehicles only
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-info-circle text-info"></i>
+                            Ensure worker is not already assigned
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-info-circle text-info"></i>
+                            Check item quantities are within available stock
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-info-circle text-info"></i>
+                            Vehicle capacity should not be exceeded
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const itemsContainer = document.getElementById('items_container');
+    const addItemBtn = document.getElementById('add_item');
+    let itemCount = 1;
+
+    addItemBtn.addEventListener('click', function() {
+        const template = document.querySelector('.transport-item').cloneNode(true);
+        
+        // Update names and IDs
+        template.querySelectorAll('[name]').forEach(input => {
+            input.name = input.name.replace('[0]', `[${itemCount}]`);
+            input.value = '';
+        });
+
+        // Show remove button
+        template.querySelector('.remove-item').style.display = 'block';
+        
+        itemsContainer.appendChild(template);
+        itemCount++;
+
+        // Add remove functionality
+        template.querySelector('.remove-item').addEventListener('click', function() {
+            template.remove();
+        });
+    });
+
+    // Show first remove button if there's more than one item
+    if (document.querySelectorAll('.transport-item').length > 1) {
+        document.querySelector('.remove-item').style.display = 'block';
+    }
+
+    // Quantity validation
+    itemsContainer.addEventListener('change', function(e) {
+        if (e.target.matches('select[name*="stock_id"]')) {
+            const row = e.target.closest('.transport-item');
+            const quantityInput = row.querySelector('input[name*="quantity"]');
+            const selectedOption = e.target.selectedOptions[0];
+            
+            if (selectedOption.value) {
+                const maxQuantity = parseInt(selectedOption.dataset.available);
+                quantityInput.max = maxQuantity;
+                quantityInput.placeholder = `Max: ${maxQuantity}`;
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

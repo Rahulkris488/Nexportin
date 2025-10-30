@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('manager.dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Transport Details</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Transport #{{ transport.id }} Details</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Basic Information</h5>
+                    <table class="table">
+                        <tr>
+                            <th>Status:</th>
+                            <td>
+                                <span class="badge bg-{{ 'primary' if transport.status == 'in-transit' 
+                                                      else 'success' if transport.status == 'completed' 
+                                                      else 'warning' }}">
+                                    {{ transport.status|title }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Source:</th>
+                            <td>{{ transport.source }}</td>
+                        </tr>
+                        <tr>
+                            <th>Destination:</th>
+                            <td>{{ transport.destination }}</td>
+                        </tr>
+                        <tr>
+                            <th>Created:</th>
+                            <td>{{ transport.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        </tr>
+                        {% if transport.completed_at %}
+                        <tr>
+                            <th>Completed:</th>
+                            <td>{{ transport.completed_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h5>Assignment Details</h5>
+                    <table class="table">
+                        <tr>
+                            <th>Worker:</th>
+                            <td>{{ transport.worker.username }}</td>
+                        </tr>
+                        <tr>
+                            <th>Vehicle:</th>
+                            <td>{{ transport.vehicle.vehicle_number }} ({{ transport.vehicle.vehicle_type }})</td>
+                        </tr>
+                        <tr>
+                            <th>Vehicle Capacity:</th>
+                            <td>{{ transport.vehicle.capacity }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-12">
+                    <h5>Transport Items</h5>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Quantity</th>
+                                    <th>Source Location</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in transport.items %}
+                                <tr>
+                                    <td>{{ item.stock.item_name }}</td>
+                                    <td>{{ item.quantity }} {{ item.stock.unit }}</td>
+                                    <td>{{ item.stock.location }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            {% if transport.status == 'pending' %}
+            <div class="mt-4">
+                <form action="{{ url_for('manager.update_transport_status', id=transport.id, status='cancelled') }}" 
+                      method="POST" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger" 
+                            onclick="return confirm('Are you sure you want to cancel this transport?')">
+                        <i class="fas fa-times"></i> Cancel Transport
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

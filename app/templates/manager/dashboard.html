@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2>Manager Dashboard</h2>
+    </div>
+    <div class="col text-end">
+        <a href="{{ url_for('manager.create_transport') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Create New Transport
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Stocks Overview -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Stock Overview</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Quantity</th>
+                                <th>Location</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stock in stocks %}
+                            <tr>
+                                <td>{{ stock.item_name }}</td>
+                                <td>{{ stock.quantity }} {{ stock.unit }}</td>
+                                <td>{{ stock.location }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Transports -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Active Transports</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>From</th>
+                                <th>To</th>
+                                <th>Worker</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transport in active_transports %}
+                            <tr>
+                                <td>{{ transport.source }}</td>
+                                <td>{{ transport.destination }}</td>
+                                <td>{{ transport.worker.username }}</td>
+                                <td>
+                                    <span class="badge bg-primary">{{ transport.status }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Vehicles Status -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Vehicle Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Vehicle</th>
+                                <th>Driver</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for vehicle in vehicles %}
+                            <tr>
+                                <td>{{ vehicle.vehicle_number }}</td>
+                                <td>{{ vehicle.driver.username if vehicle.driver else 'Unassigned' }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if vehicle.status == 'available' else 'warning' }}">
+                                        {{ vehicle.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Workers Status -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">Workers Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Worker</th>
+                                <th>Current Task</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for worker in workers %}
+                            <tr>
+                                <td>{{ worker.username }}</td>
+                                <td>
+                                    {% set current_transport = worker.assigned_transports|selectattr('status', 'equalto', 'in-transit')|first %}
+                                    {% if current_transport %}
+                                        {{ current_transport.source }} → {{ current_transport.destination }}
+                                    {% else %}
+                                        Available
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

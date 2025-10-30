@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Welcome, {{ current_user.username }}</h2>
+            <p class="text-muted">Your Logistics Dashboard</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Current Transport -->
+        {% set current_transport = transports|selectattr('status', 'equalto', 'in-transit')|first %}
+        {% if current_transport %}
+        <div class="col-12 mb-4">
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Current Active Transport</h5>
+                    <span class="badge bg-light text-primary">In Progress</span>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6 class="text-muted mb-3">Route Information</h6>
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fas fa-map-marker-alt text-danger me-2"></i>
+                                <div>
+                                    <small class="text-muted">From</small>
+                                    <div>{{ current_transport.source }}</div>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-flag-checkered text-success me-2"></i>
+                                <div>
+                                    <small class="text-muted">To</small>
+                                    <div>{{ current_transport.destination }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-muted mb-3">Vehicle Details</h6>
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas fa-truck me-2"></i>
+                                <div>{{ current_transport.vehicle.vehicle_number }}</div>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-weight me-2"></i>
+                                <div>Capacity: {{ current_transport.vehicle.capacity }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-muted mb-3">Cargo Information</h6>
+                            <ul class="list-group">
+                                {% for item in current_transport.items %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    {{ item.stock.item_name }}
+                                    <span class="badge bg-primary rounded-pill">
+                                        {{ item.quantity }} {{ item.stock.unit }}
+                                    </span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="text-end mt-4">
+                        <button type="button" class="btn btn-info me-2" data-bs-toggle="modal" data-bs-target="#transportDetailsModal">
+                            <i class="fas fa-info-circle"></i> View Full Details
+                        </button>
+                        <a href="{{ url_for('worker.update_transport_status', id=current_transport.id, status='completed') }}" 
+                           class="btn btn-success"
+                           onclick="return confirm('Are you sure you want to mark this transport as completed?')">
+                            <i class="fas fa-check"></i> Complete Transport
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Tasks Overview -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">Pending Tasks</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for transport in transports|selectattr('status', 'equalto', 'pending') %}
+                        <div class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">
+                                    <i class="fas fa-box me-2"></i>
+                                    Transport #{{ transport.id }}
+                                </h6>
+                                <small>{{ transport.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                            </div>
+                            <p class="mb-1">
+                                <i class="fas fa-route me-2"></i>
+                                {{ transport.source }} → {{ transport.destination }}
+                            </p>
+                            <small class="text-muted">
+                                <i class="fas fa-truck me-1"></i>
+                                Vehicle: {{ transport.vehicle.vehicle_number }}
+                            </small>
+                            <div class="mt-2 text-end">
+                                <a href="{{ url_for('worker.transport_details', id=transport.id) }}" 
+                                   class="btn btn-sm btn-outline-info me-2">
+                                    <i class="fas fa-info-circle"></i> Details
+                                </a>
+                                <a href="{{ url_for('worker.update_transport_status', id=transport.id, status='in-transit') }}" 
+                                   class="btn btn-sm btn-primary"
+                                   onclick="return confirm('Ready to start this transport?')">
+                                    <i class="fas fa-play"></i> Start Transport
+                                </a>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                            <p class="text-muted mb-0">No pending tasks available</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Completed Transports -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Completed Transports</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for transport in transports|selectattr('status', 'equalto', 'completed')|sort(attribute='completed_at', reverse=true) %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    Transport #{{ transport.id }}
+                                </h6>
+                                <small>{{ transport.completed_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                            </div>
+                            <p class="mb-1">{{ transport.source }} → {{ transport.destination }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-truck me-1"></i>
+                                    {{ transport.vehicle.vehicle_number }}
+                                </small>
+                                <a href="{{ url_for('worker.transport_details', id=transport.id) }}" 
+                                   class="btn btn-sm btn-outline-info">
+                                    <i class="fas fa-search"></i> View Details
+                                </a>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-history text-muted fa-3x mb-3"></i>
+                            <p class="text-muted mb-0">No completed transports yet</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Transport Details Modal -->
+{% if current_transport %}
+<div class="modal fade" id="transportDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Transport #{{ current_transport.id }} Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Transport details content -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Transport Information</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <th>Status:</th>
+                                <td><span class="badge bg-primary">In Transit</span></td>
+                            </tr>
+                            <tr>
+                                <th>Started:</th>
+                                <td>{{ current_transport.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            </tr>
+                            <tr>
+                                <th>Vehicle:</th>
+                                <td>{{ current_transport.vehicle.vehicle_number }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Route Details</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <th>Source:</th>
+                                <td>{{ current_transport.source }}</td>
+                            </tr>
+                            <tr>
+                                <th>Destination:</th>
+                                <td>{{ current_transport.destination }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <h6>Items to Transport</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Quantity</th>
+                                    <th>Source Location</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in current_transport.items %}
+                                <tr>
+                                    <td>{{ item.stock.item_name }}</td>
+                                    <td>{{ item.quantity }} {{ item.stock.unit }}</td>
+                                    <td>{{ item.stock.location }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
